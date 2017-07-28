@@ -1,25 +1,20 @@
-# build docker image to run the unifi controller
-#
-# the unifi contoller is used to admin ubunquty wifi access points
-#
-FROM openjdk:8-jre
-MAINTAINER "Ross Williams" ross@ross-williams.net
-ENV DEBIAN_FRONTEND noninteractive
+FROM openjdk:8-jre-slim
 
-RUN mkdir -p /var/log/supervisor /usr/lib/unifi/data && \
-    touch /usr/lib/unifi/data/.unifidatadir
+ARG UNIFI_VERSION
 
-# add unifi and mongo repo
-ADD ./100-ubnt.list /etc/apt/sources.list.d/100-ubnt.list
-
-# add ubiquity + 10gen(mongo) repo + key
-# update then install
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv C0A52C50 && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10 && \
-    apt-get update -q -y && \
-    apt-get install -q -y mongodb-server unifi
+CMD ["/root/unifi.init"]
 
 VOLUME /usr/lib/unifi/data
-EXPOSE  8443 8880 8080 27117
+# https://help.ubnt.com/hc/en-us/articles/218506997-UniFi-Ports-Used
+EXPOSE 8443 8880 8843 8080 6789 3478/udp 10001/udp 5656-5699/udp
+
+ADD 100-ubnt.list /etc/apt/sources.list.d/100-ubnt.list
+RUN apt-get update && apt-get install -y gnupg2
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv 06E85760C0A52C50 \
+	&& apt-get update \
+	&& apt-get install -y unifi${UNIFI_VERSION:+=}${UNIFI_VERSION}${UNIFI_VERSION:+*} \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/lib/unifi
-CMD ["java", "-Xmx256M", "-jar", "/usr/lib/unifi/lib/ace.jar", "start"]
+
+COPY unifi.init /root/unifi.init

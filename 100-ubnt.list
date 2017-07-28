@@ -1,8 +1,1 @@
-## Debian/Ubuntu
-# stable => unifi5
-deb http://www.ubnt.com/downloads/unifi/debian unifi5 ubiquiti
-# deb http://www.ubnt.com/downloads/unifi/debian stable ubiquiti
-
-# optional mongo upstream repo
-## Ubuntu
-deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen
+deb http://www.ubnt.com/downloads/unifi/debian stable ubiquiti
